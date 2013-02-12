@@ -1,0 +1,89 @@
+IF 1° latitude == 110km exactly:  R = 0.989E, M = 1.021E, D = 1.044E ( = 5.758 g/cm^3)
+
+OR R=1, M=1, D=1 and 1° latitude == 111.2km
+
+
+
+
+Lambert Conformal Conic:
+
+
+// calculate once:
+
+$standard_1, $standard_2 = standard parallels
+$referenceLat, $referenceLon = reference latitude & longitude
+$lat, $long = latitude & longitude of point
+
+$pi4 = M_PI / 4;
+
+$n = log( cos($standard_1) / sin($standard_2) ) / log( tan( $pi4 + ($standard_2/2) ) / tan( $pi4 + ($standard_1/2) ) );
+$F = ( cos($standard_1) * pow( tan( $pi4 + ($standard_1/2) ), $n ) ) / $n;
+$rho_0 = $F * pow( 1 / tan( $pi4 + ($referenceLat/2) ), $n);
+
+
+// for each point $lat, $long:
+
+$rho = $F * pow( 1 / tan( $pi4 + ($lat/2) ), $n);
+
+$x = $rho * sin ( $n * ($lon - $referenceLon) );
+$y = $rho_0 - ( $rho * cos( $n * ($lon - $referenceLon) ) );
+
+
+
+
+// inverse:
+// calculate once:
+$pi2 = M_PI / 2;
+$pi4 = M_PI / 4;
+
+$n = log( cos($standard_1) / sin($standard_2) ) / log( tan( $pi4 + ($standard_2/2) ) / tan( $pi4 + ($standard_1/2) ) );
+$F = ( cos($standard_1) * pow(tan( $pi4 + ($standard_1/2) ), $n) ) / $n;
+$rho_0 = $F * pow( 1 / tan( $pi4 + ($referenceLat/2) ), $n);
+$sgn = $n < 0 ? -1 : 1;
+
+
+// for each point $x, $y:
+
+$rho = $sgn * sqrt( pow($x, 2) + pow($rho_0 - $y, 2) );
+$theta = atan2( $x, ( $rho_0 - $y) );
+
+$lat = ( 2 * atan( pow($F / $rho), 1 / $n ) ) - $pi2;
+$lon = $referenceLon + ($theta / $n);
+
+
+
+
+
+// constructing a grid from the cone
+// inputs are $scale ( "1:[$scale]" ), $standard_1, $standard_2
+
+define('EARTH_RADIUS', 6317000000);  // millimeters
+$theta = ($standard_1 + $standard_2) / 2;
+$costheta = cos($theta);
+$C = ( sin($standard_2) + ( cos($standard_2) / tan($theta) ) ) * EARTH_RADIUS / $scale;     // multiply by earth radius divided by scale to get map measurement
+$H = $C / $costheta;
+$lonFactor = tan($theta) * $costheta;                 // scale factor for lines of longitude; 10° * $lonFactor = degrees of arc on map between 10° longitude lines
+
+
+// for each point ($lat, $lon), given map reference point ($referenceLat, $referenceLon) as the top center point
+
+$Hlatreference = $C * $costheta / cos( $referenceLat - $theta );        // diameter of reference latitude circle from map's pole
+$Hlat = $C * $costheta / cos( $lat - $theta );
+$x = $Hlat * sin(($lon - $referenceLon) * $lonFactor);
+$y = $Hlat - $Hlatreference;
+
+
+// inverse case for each point ($x,y), given map reference point ($referenceLat, $referenceLon) as the top center point
+
+$Hlatreference = $C * $costheta / cos( $referenceLat - $theta );        // diameter of reference latitude circle from map's pole
+$dy = $y + $Hlatreference;
+$Hlat = sqrt( pow($x, 2) + pow($y + $Hlatreference, 2) );
+$lat = acos($C * $costheta / $Hlat) + $theta;
+$lon = atan2($x, $y + $Hlatreference) / $lonFactor;
+OR
+$lon = asin($x / $Hlat) / $lonFactor;
+
+
+
+
+
