@@ -1,7 +1,7 @@
 var fs = require('fs');
 
 exports.getDem = function ( fileNameStem ) {
-    var filenameBase = '../' + fileNameStem + '/' + fileNameStem + '_dem',
+    var filenameBase = 'dems/' + fileNameStem + '/' + fileNameStem + '_dem',
         fd = fs.openSync(filenameBase + '.bil', 'r'),
         proj = fs.readFileSync(filenameBase + '.proj').toString().split('\n');
         blw = fs.readFileSync(filenameBase + '.blw').toString().split('\n'),

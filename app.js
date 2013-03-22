@@ -51,16 +51,16 @@ newBuffer = new Buffer(config.newMapDem.rows * config.newMapDem.cols * config.ne
 // set up loop functionality
 if ( config.newPole.inverse === true ) {
 	startY = config.newMapDem.bounds.right;
-	testY = function () { return y <= config.newMapDem.bounds.left; }
-	incrementY = function () { y++; }
+	testY = function (y) { return y <= config.newMapDem.bounds.left; }
+	incrementY = function (y) { return ++y; }
 } else {
 	startY = config.newMapDem.bounds.left;
-	testY = function () { return y >= config.newMapDem.bounds.right }
-	incrementY = function () { y--; }
+	testY = function (y) { return y >= config.newMapDem.bounds.right }
+	incrementY = function (y) { return --y; }
 }
 
 // loop through all map points
-for ( y = startY; testY(); incrementY() ) {
+for ( y = startY; testY(y); y = incrementY(y) ) {
 	console.log(y);
 	for ( x = config.newMapDem.bounds.top; x <= config.newMapDem.bounds.bottom; x++ ) {
 		height = getHeightFromDem(dems.northAmerica, newPole, newMap);
